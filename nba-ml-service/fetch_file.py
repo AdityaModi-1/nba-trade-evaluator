@@ -20,7 +20,7 @@ adv_stats = leaguedashplayerstats.LeagueDashPlayerStats(
 df_adv = adv_stats.get_data_frames()[0]
 
 df_stats_clean = df_stats[[
-    'PLAYER_ID', 'PLAYER_NAME', 'TEAM_ID', 'TEAM_ABBREVIATION', 'GP', 
+    'PLAYER_ID', 'PLAYER_NAME', 'TEAM_ID', 'TEAM_ABBREVIATION', 'AGE', 'GP', 
     'MIN', 'PTS', 'REB', 'AST', 'STL', 'BLK', 'TOV'
 ]]
 
@@ -36,7 +36,8 @@ final_df.rename(columns={
     'PLAYER_ID': 'player_id',
     'PLAYER_NAME': 'name',
     'TEAM_ABBREVIATION': 'team',
+    'AGE': 'age',
 }, inplace=True)
 
-output_file = 'nba_player_stats.csv'
-final_df.to_csv(output_file, index=False) 
+output_file = 'nba_player_stats_with_age.csv'
+final_df.to_csv(output_file, index=False)

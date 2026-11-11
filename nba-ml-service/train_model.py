@@ -6,7 +6,8 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import mean_squared_error, r2_score
 import joblib
 
-df = pd.read_csv('nba_player_stats.csv')
+df = pd.read_csv('nba_player_stats_with_age.csv')
+df = df.dropna(subset=['AGE']).copy()
 
 raw_impact = (
     (df['PTS'] * 1.0) +
@@ -30,7 +31,8 @@ feature_cols = [
     "TOV",
     "TS_PCT",
     "USG_PCT",
-    "MIN"
+    "MIN",
+    "AGE"
 ]
 
 X = df[feature_cols]

@@ -31,7 +31,7 @@ app = FastAPI(
 )
 
 FEATURE_COLUMNS = [
-    "PTS", "REB", "AST", "STL", "BLK", "TOV", "TS_PCT", "USG_PCT", "MIN"
+    "PTS", "REB", "AST", "STL", "BLK", "TOV", "TS_PCT", "USG_PCT", "MIN", "AGE"
 ]
 
 class PlayerStats(BaseModel):
@@ -45,6 +45,7 @@ class PlayerStats(BaseModel):
     TS_PCT: float = Field(..., ge=0.0, le=1.0, example=0.617)
     USG_PCT: float = Field(..., ge=0.0, le=1.00, example=0.360)
     MIN: float = Field(..., ge=0.0, le=48.0, example=37.5)
+    AGE: float = Field(..., ge=18.0, le=50.0, example=25.0)
 
 class TradeRequest(BaseModel):
     team_a_giving: List[PlayerStats] = Field(..., min_length=1)
@@ -63,6 +64,14 @@ class TradeResponse(BaseModel):
     team_a_breakdown: List[EvaluatedPlayer]
     team_b_breakdown: List[EvaluatedPlayer]
 
+def age_multiplier(age: float) -> float:
+    """Trade-value multiplier: premium for young players, decay for older ones."""
+    if age < 25:
+        return 1.0 + 0.05 * (25 - age)             # 19 -> 1.30, 22 -> 1.15
+    if age <= 29:
+        return 1.0                                  # prime
+    return max(0.45, 1.0 - 0.045 * (age - 29))      # 33 -> 0.82, 41 -> 0.46
+
 def predict_players(players: List[PlayerStats]) -> List[EvaluatedPlayer]:
     pipeline = ml_models.get("pipeline")
     if not pipeline:
@@ -74,7 +83,10 @@ def predict_players(players: List[PlayerStats]) -> List[EvaluatedPlayer]:
     predictions = pipeline.predict(df)
 
     return [
-        EvaluatedPlayer(name=p.name, predicted_impact=round(float(pred), 2))
+        EvaluatedPlayer(
+            name=p.name,
+            predicted_impact=round(float(pred) * age_multiplier(p.AGE), 2)
+        )
         for p, pred in zip(players, predictions)
     ]
 
